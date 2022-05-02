@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Зарегестрированные пользователи</h1>
+{% if current_user.is_authenticated %}
+<p><a href="news" class="btn btn-warning">Редактировать свой профиль</a></p><br>
+{% endif %}
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.search.label }}<br>
+        {{ form.search(class="form-control") }}<br>
+    {{ form.submit(type="submit", class="btn btn-primary") }}
+    </p>
+    {% for error in form.search.errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endfor %}
+    {% if error %}
+    <p class="alert alert-warning" role="alert">
+        {{ error }}
+    </p>
+    {% endif %}
+</form>
+{% for item in users%}
+<div class="col-md6 border rounded">
+    <div>
+        <h2>{{item.name}} {{item.surname}}</h2>
+        <p class="blockquote"><em>Имя пользователя:</em> <a href="/">{{item.username}}</a></p>
+
+    </div>
+    <div>
+        <strong>Описание:</strong> {{item.about}}
+    </div>
+    <div>
+        <strong>Почта:</strong> {{item.email}}
+    </div>
+    <div>
+        <strong>Дата регистрации:</strong> {{item.created_date}}
+    </div>
+    <a class="btn btn-secondary" href="/messages/{{item.username}}">Написать</a>
+</div>
+{% endfor %}
+{% endblock %}

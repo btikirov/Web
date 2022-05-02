@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 xmlns="http://www.w3.org/1999/html">{{title}}</h1>
+<form action="" method="post" class="form-horizontal">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control") }} <br>
+        {% for error in form.name.errors %}
+        <p class="alert alert-danger" role="alert">
+            {{ error }}
+        </p>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        {{ form.users.label }}<br>
+        {{ form.users(class="form-control form-inline") }} <br>
+        {% for error in form.users.errors %}
+        <p content="alert alert-danger" role="alert">
+            {{ error }}
+        </p>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    </div>
+    {{message}}
+</form>
+{% endblock %}
