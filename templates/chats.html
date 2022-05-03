@@ -12,7 +12,11 @@
         Создатель - {{item.admin.username}}, Дата написания - {{item.created_date}}
     </div>
     <div>
-        <a href="/chats/{{item.id}}" class="btn btn-primary">Написать</a>
+        {% if item.unique_chat_href == None %}
+            <a href="/chats/{{item.id}}" class="btn btn-primary">Написать</a>
+        {% else %}
+            <a href="/chats/{{item.unique_chat_href}}" class="btn btn-primary">Написать</a>
+        {% endif %}
     </div>
 
 </div>

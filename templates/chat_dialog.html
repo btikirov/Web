@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+        <h2 class="text-center">{{chat.name}}</h2>
+    </div>
+  </div>
+</div>
+{% for item in chat.messages%}
+<div class="col-md6 border rounded">
+    <div>
+        {% if current_user.id == item.sender_id %}
+            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} <em>{{item.created_date}}</em></p>
+        {% else %}
+            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} <em>{{item.created_date}}</em></p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+<form action="" method="post" class="row">
+    {{ form.hidden_tag() }}
+    <div class="col">
+      {{ form.message(class="form-control") }}
+    </div>
+    <div class="col-md-auto">
+      {{ form.submit(type="submit", class="btn btn-primary") }}
+    </div>
+</form>
+
+{% endblock %}

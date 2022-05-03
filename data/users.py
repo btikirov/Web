@@ -28,6 +28,7 @@ class User(SqlAlchemyBase, UserMixin):
                           backref="users")
 
     chats_where_admin = orm.relation("Chat", back_populates='admin')
+    sent_messages = orm.relation("Message", back_populates='sender')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
