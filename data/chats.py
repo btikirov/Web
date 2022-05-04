@@ -4,16 +4,6 @@ from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 
 
-association_table = sqlalchemy.Table(
-    'association',
-    SqlAlchemyBase.metadata,
-    sqlalchemy.Column('users', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('users.id')),
-    sqlalchemy.Column('chats', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('chats.id'))
-)
-
-
 class Chat(SqlAlchemyBase):
     __tablename__ = 'chats'
 
@@ -25,7 +15,7 @@ class Chat(SqlAlchemyBase):
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
 
-    messages = orm.relation("Message", back_populates='chat')
+    messages = orm.relation("Message", back_populates='chat', lazy='subquery')
 
     admin_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))

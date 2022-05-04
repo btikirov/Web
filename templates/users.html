@@ -39,7 +39,12 @@
     <div>
         <strong>Дата регистрации:</strong> {{item.created_date}}
     </div>
-    <a class="btn btn-secondary" href="/chats/{{item.username}}">Написать</a>
+    <br>
+    {% if current_user.username != item.username %}
+        <a class="btn btn-secondary" href="/chats/{{item.username}}_{{current_user.username}}">Написать</a>
+    {% else %}
+        <a class="btn btn-secondary" href="/chats/{{current_user.username}}">Зайти в свои заметки</a>
+    {% endif %}
 </div>
 {% endfor %}
 {% endblock %}

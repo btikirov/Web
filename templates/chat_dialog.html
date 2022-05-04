@@ -11,15 +11,12 @@
 {% for item in chat.messages%}
 <div class="col-md6 border rounded">
     <div>
-        {% if current_user.id == item.sender_id %}
-            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} <em>{{item.created_date}}</em></p>
-        {% else %}
-            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} <em>{{item.created_date}}</em></p>
-        {% endif %}
+            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} </p>
+            <p class="text-right"><em>{{item.created_date}}</em></p>
     </div>
 </div>
 {% endfor %}
-<form action="" method="post" class="row">
+<form action="" method="post" class="row" novalidate>
     {{ form.hidden_tag() }}
     <div class="col">
       {{ form.message(class="form-control") }}

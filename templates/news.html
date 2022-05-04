@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1 xmlns="http://www.w3.org/1999/html">{{title}}</h1>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post" class="form-horizontal" novalidate>
     {{ form.hidden_tag() }}
     <div class="form-group">
         {{ form.title.label }}<br>

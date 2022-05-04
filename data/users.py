@@ -6,6 +6,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 
+association_table = sqlalchemy.Table(
+    'association',
+    SqlAlchemyBase.metadata,
+    sqlalchemy.Column('users', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('users.id')),
+    sqlalchemy.Column('chats', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('chats.id'))
+)
+
+
 class User(SqlAlchemyBase, UserMixin):
     __tablename__ = 'users'
 
@@ -25,10 +35,11 @@ class User(SqlAlchemyBase, UserMixin):
 
     chats = orm.relation("Chat",
                           secondary="association",
-                          backref="users")
+                          backref="users",
+                          lazy='subquery')
 
     chats_where_admin = orm.relation("Chat", back_populates='admin')
-    sent_messages = orm.relation("Message", back_populates='sender')
+    sent_messages = orm.relation("Message", back_populates='sender', lazy='subquery')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

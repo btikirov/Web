@@ -20,10 +20,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-
-
-
-#all for news
+# all for news
 
 
 @app.route("/")
@@ -31,6 +28,7 @@ login_manager.init_app(app)
 def news():
     db_sess = db_session.create_session()
     news = db_sess.query(News).filter(News.is_private != True)
+
     return render_template("index.html", news=news)
 
 
@@ -50,6 +48,7 @@ def add_news():
         current_user.news.append(news)
         db_sess.merge(current_user)
         db_sess.commit()
+
         return redirect('/')
     return render_template('news.html', title='Добавление новости',
                            form=form)
@@ -67,6 +66,7 @@ def edit_news(id):
         news = db_sess.query(News).filter(News.id == id,
                                           News.user == current_user
                                           ).first()
+
         if news:
             form.title.data = news.title
             form.content.data = news.content
@@ -78,6 +78,7 @@ def edit_news(id):
         news = db_sess.query(News).filter(News.id == id,
                                           News.user == current_user
                                           ).first()
+
         if news:
             news.title = form.title.data
             news.content = form.content.data
@@ -106,11 +107,10 @@ def news_delete(id):
         db_sess.delete(news)
         db_sess.commit()
     else:
+
         abort(404)
+
     return redirect('/')
-
-
-
 
 
 # all for user
@@ -119,11 +119,12 @@ def news_delete(id):
 @app.route("/users", methods=['GET', 'POST'])
 def users():
     form = FindUserForm()
-    db_sess = db_session.create_session()
     if form.validate_on_submit():
         return redirect(f'/users/{form.search.data}')
-        #form = FindUserForm()
-    users_list = db_sess.query(User)
+        # form = FindUserForm()
+    db_sess = db_session.create_session()
+    users_list = db_sess.query(User).all()
+
     return render_template("users.html", users=users_list, form=form)
 
 
@@ -136,6 +137,7 @@ def search_for_users(data):
     users_list = db_sess.query(User).filter(
         (User.email.like(search)) | (User.username.like(search)) | (User.name.like(name)) | User.surname.like(
             surname))
+
     form = FindUserForm()
     if form.validate_on_submit():
         return redirect(f'/users/{form.search.data}')
@@ -150,6 +152,7 @@ def login():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(
             (User.email == form.email_or_username.data) | (User.username == form.email_or_username.data)).first()
+
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
@@ -169,14 +172,16 @@ def reqister():
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter((User.email == form.email.data) | (User.username == form.username.data)).first():
+
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть")
         for ch in ['@', '#', '$', ' ']:
             if ch in form.username.data:
+
                 return render_template('register.html', title='Регистрация',
-                                        form=form,
-                                        message="Имя пользователя не должно содержать символы @, #, $ и пробелы")
+                                       form=form,
+                                       message="Имя пользователя не должно содержать символы @, #, $ и пробелы")
         user = User(
             username=form.username.data,
             name=form.name.data,
@@ -187,6 +192,7 @@ def reqister():
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
+
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
 
@@ -201,11 +207,9 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+    user = db_sess.query(User).get(user_id)
 
-
-
-
+    return user
 
 
 # all for chats
@@ -215,49 +219,65 @@ def load_user(user_id):
 def chats():
     if not current_user.is_authenticated:
         return redirect("/login")
-
+    db_sess = db_session.create_session()
+    db_sess.query(User).all()
     chats = current_user.chats
     return render_template("chats.html", chats=chats)
 
 
-def create_chat(name, users, unique_id=None):
+def create_chat(name, users, creator_username, unique_id=None):
     db_sess = db_session.create_session()
     chat = Chat()
     chat.name = name
     chat.unique_chat_href = unique_id
-    current_user.chats_where_admin.append(chat)
-    chat = db_sess.merge(chat)
+    db_sess.merge(chat)
     db_sess.commit()
     if chat.unique_chat_href is None:
         chat.unique_chat_href = str(chat.id)
-    chat_users = db_sess.query(User).filter(
-        User.username.in_(users.split(' ') + [current_user.username])).all()
-    for chat_user in chat_users:
+        chat = db_sess.merge(chat)
+        db_sess.commit()
+
+    creator = db_sess.query(User).filter(User.username == creator_username).first()
+    chat.admin = creator
+    db_sess.add(chat)
+    db_sess.commit()
+    db_sess.close()
+    db_sess = db_session.create_session()
+    for chat_user in users:
         chat_user.chats.append(chat)
         db_sess.merge(chat_user)
+        db_sess.commit()
     db_sess.merge(chat)
     db_sess.commit()
 
 
-@app.route("/chats/<string:id>", methods=['GET', 'POST'])
-def open_chat(id):
+
+@app.route("/chats/<string:chat_id>", methods=['GET', 'POST'])
+def open_chat(chat_id):
     if not current_user.is_authenticated:
         return redirect("/login")
 
     form = SendForm()
     find_chat = None
-    db_sess = db_session.create_session()
+    id = chat_id
+    if not chat_id.isdigit():
+        names = sorted(list(chat_id.split('_')))
+        id = '_'.join(names)
     user_chats = current_user.chats
     for chat in user_chats:
         if chat.unique_chat_href == id:
             find_chat = chat
             break
-    db_sess.close()
+
     if find_chat is None and not id.isdigit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.username == id).first()
-        if user:
-            create_chat(f"{user.name} {user.surname}", f"{user.username}", unique_id=id)
+        users = db_sess.query(User).filter(User.username.in_(list(id.split('_')))).all()
+
+        if users:
+            name = ' и '.join(id.split('_'))
+            if id == current_user.username:
+                name = "Заметки"
+            create_chat(name, users, 'admin', unique_id=id)
             user_chats = current_user.chats
             for chat in user_chats:
                 if chat.unique_chat_href == id:
@@ -265,7 +285,6 @@ def open_chat(id):
                     break
         else:
             abort(404)
-        db_sess.close()
     elif find_chat is None:
         abort(404)
 
@@ -278,8 +297,8 @@ def open_chat(id):
         message = db_sess.merge(message)
         db_sess.add(message)
         db_sess.commit()
-        return redirect(f"/chats/{id}")
 
+        return redirect(f"/chats/{id}")
     return render_template("chat_dialog.html", chat=find_chat, form=form)
 
 
@@ -290,18 +309,29 @@ def add_chat():
 
     form = ChatForm()
     if form.validate_on_submit():
-        create_chat(form.name.data, form.users.data)
+        db_sess = db_session.create_session()
+        users = db_sess.query(User).filter(User.username.in_(list(form.users.data.split()) + [current_user.username])).all()
+
+        create_chat(form.name.data, users, current_user.username)
         return redirect('/chats')
     return render_template('add_chat.html', title='Добавление чата',
                            form=form)
 
 
-
-
-
-
-
 if __name__ == '__main__':
     db_session.global_init("db/blogs.db")
     app.register_blueprint(news_api.blueprint)
+    db_sess = db_session.create_session()
+    if not db_sess.query(User).filter(User.username == 'admin').first():
+        user = User(
+            username='admin',
+            name='main',
+            surname='admin',
+            email='devyatyarov.06@mail.ru',
+            about='Главный админ'
+        )
+        user.set_password('admin')
+        db_sess.add(user)
+        db_sess.commit()
+
     app.run()
