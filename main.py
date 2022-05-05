@@ -5,11 +5,13 @@ from data.users import User
 from data.news import News
 from data.chats import Chat
 from data.messages import Message
+from data.categories import Category
 from data import db_session, news_api
 from forms.user import RegisterForm, LoginForm, FindUserForm
 from forms.new import NewsForm
 from forms.chat import ChatForm
 from forms.message import SendForm
+from forms.category import CategoryForm
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import reqparse
 
@@ -23,13 +25,44 @@ login_manager.init_app(app)
 # all for news
 
 
-@app.route("/")
-@app.route("/news")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/news", methods=['GET', 'POST'])
 def news():
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.is_private != True)
+    news = db_sess.query(News).filter(News.is_private != True).all()
+    categories = db_sess.query(Category).all()
+    form = CategoryForm()
+    if form.validate_on_submit():
+        category = Category()
+        category.name = form.add.data
+        db_sess.add(category)
+        db_sess.commit()
+        return redirect('/news')
 
-    return render_template("index.html", news=news)
+    return render_template("news.html", news=news, categories=categories, form=form)
+
+
+@app.route("/news/<int:category_id>", methods=['GET', 'POST'])
+def category_news(category_id):
+    db_sess = db_session.create_session()
+    req_categories = db_sess.query(Category).filter(Category.id == category_id).all()
+    news_old = db_sess.query(News).filter(News.is_private != True).all()
+    news = []
+    for item in news_old:
+        for category in item.categories:
+            if category.id == category_id:
+                news.append(item)
+                break
+    categories = db_sess.query(Category).all()
+    form = CategoryForm()
+    if form.validate_on_submit():
+        category = Category()
+        category.name = form.add.data
+        db_sess.add(category)
+        db_sess.commit()
+        return redirect('/news')
+
+    return render_template("news.html", news=news, categories=categories, form=form)
 
 
 @app.route('/add_news', methods=['GET', 'POST'])
@@ -39,18 +72,29 @@ def add_news():
         return redirect("/login")
 
     form = NewsForm()
+    db_sess = db_session.create_session()
+    categories_old = db_sess.query(Category).all()
+    categories = []
+    for item in categories_old:
+        categories.append((int(item.id), item.name))
+
+    form.categories.choices = categories
+
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
         news = News()
+        selected_categories = db_sess.query(Category).filter(Category.id.in_(form.categories.data)).all()
         news.title = form.title.data
         news.content = form.content.data
         news.is_private = form.is_private.data
-        current_user.news.append(news)
-        db_sess.merge(current_user)
+        news.user = current_user
+        news = db_sess.merge(news)
+        news.categories = selected_categories
+        db_sess.add(news)
         db_sess.commit()
-
         return redirect('/')
-    return render_template('news.html', title='Добавление новости',
+    else:
+        print(form.errors)
+    return render_template('edit_news.html', title='Добавление новости',
                            form=form)
 
 
@@ -61,8 +105,15 @@ def edit_news(id):
         return redirect("/login")
 
     form = NewsForm()
+    db_sess = db_session.create_session()
+    categories_old = db_sess.query(Category).all()
+    categories = []
+    for item in categories_old:
+        categories.append((item.id, item.name))
+
+    form.categories.choices = categories
+
     if request.method == "GET":
-        db_sess = db_session.create_session()
         news = db_sess.query(News).filter(News.id == id,
                                           News.user == current_user
                                           ).first()
@@ -71,10 +122,12 @@ def edit_news(id):
             form.title.data = news.title
             form.content.data = news.content
             form.is_private.data = news.is_private
+            news_categories = [item.id for item in news.categories]
+
+            form.categories.data = news_categories
         else:
             abort(404)
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
         news = db_sess.query(News).filter(News.id == id,
                                           News.user == current_user
                                           ).first()
@@ -83,11 +136,12 @@ def edit_news(id):
             news.title = form.title.data
             news.content = form.content.data
             news.is_private = form.is_private.data
+            news.categories = db_sess.query(Category).filter(Category.id.in_(form.categories.data)).all()
             db_sess.commit()
             return redirect('/')
         else:
             abort(404)
-    return render_template('news.html',
+    return render_template('edit_news.html',
                            title='Редактирование новости',
                            form=form
                            )
@@ -252,7 +306,7 @@ def create_chat(name, users, creator_username, unique_id=None):
 
 
 
-@app.route("/chats/<string:chat_id>", methods=['GET', 'POST'])
+@app.route("/chats/<string:chat_id>/", methods=['GET', 'POST'])
 def open_chat(chat_id):
     if not current_user.is_authenticated:
         return redirect("/login")
@@ -299,7 +353,26 @@ def open_chat(chat_id):
         db_sess.commit()
 
         return redirect(f"/chats/{id}")
-    return render_template("chat_dialog.html", chat=find_chat, form=form)
+    chat_messages = sorted(list(find_chat.messages), key=lambda item: item.created_date)
+    return render_template("chat_dialog.html", chat=find_chat, form=form, messages = chat_messages)
+
+
+@app.route("/chats/<string:chat_id>/delete_message/<int:message_id>")
+def delete_message(chat_id, message_id):
+    if not current_user.is_authenticated:
+        return redirect("/login")
+
+    db_sess = db_session.create_session()
+    messages = db_sess.query(Message).filter(Message.id == message_id,
+                                      Message.sender == current_user
+                                      ).first()
+    if messages:
+        db_sess.delete(messages)
+        db_sess.commit()
+    else:
+        abort(404)
+
+    return redirect(f'/chats/{chat_id}')
 
 
 @app.route("/add_chat", methods=["GET", "POST"])

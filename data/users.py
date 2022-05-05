@@ -7,7 +7,7 @@ from flask_login import UserMixin
 
 
 association_table = sqlalchemy.Table(
-    'association',
+    'user_to_chat',
     SqlAlchemyBase.metadata,
     sqlalchemy.Column('users', sqlalchemy.Integer,
                       sqlalchemy.ForeignKey('users.id')),
@@ -34,7 +34,7 @@ class User(SqlAlchemyBase, UserMixin):
     news = orm.relation("News", back_populates='user')
 
     chats = orm.relation("Chat",
-                          secondary="association",
+                          secondary="user_to_chat",
                           backref="users",
                           lazy='subquery')
 

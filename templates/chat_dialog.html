@@ -2,27 +2,32 @@
 
 {% block content %}
 <div class="container">
-  <div class="row">
-    <div class="col">
-        <h2 class="text-center">{{chat.name}}</h2>
+    <div class="row">
+        <div class="col">
+            <h2 class="text-center">{{chat.name}}</h2>
+        </div>
     </div>
-  </div>
 </div>
-{% for item in chat.messages%}
+{% for item in messages%}
+
 <div class="col-md6 border rounded">
     <div>
-            <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}} </p>
-            <p class="text-right"><em>{{item.created_date}}</em></p>
+        <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}}
+            {% if current_user.id == item.sender_id %}
+            <a href="delete_message/{{item.id}}" class="btn btn-danger" style="text-align: right">Удалить</a>
+            {% endif %}
+        </p>
+        <p class="text-right"><em>{{item.created_date}}</em></p>
     </div>
 </div>
 {% endfor %}
 <form action="" method="post" class="row" novalidate>
     {{ form.hidden_tag() }}
     <div class="col">
-      {{ form.message(class="form-control") }}
+        {{ form.message(class="form-control") }}
     </div>
     <div class="col-md-auto">
-      {{ form.submit(type="submit", class="btn btn-primary") }}
+        {{ form.submit(type="submit", class="btn btn-primary") }}
     </div>
 </form>
 

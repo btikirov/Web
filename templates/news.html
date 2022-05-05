@@ -1,33 +1,82 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 xmlns="http://www.w3.org/1999/html">{{title}}</h1>
-<form action="" method="post" class="form-horizontal" novalidate>
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-        {{ form.title.label }}<br>
-        {{ form.title(class="form-control") }} <br>
-        {% for error in form.title.errors %}
-        <p class="alert alert-danger" role="alert">
-            {{ error }}
-        </p>
-        {% endfor %}
+<h1>Записи на сайте</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-sm">
+            {% if current_user.is_authenticated %}
+            <a href="/add_news" class="btn btn-secondary">Добавить новость</a><br><br>
+            {% endif %}
+        </div>
+        <div class="col-auto">
+            <div class="dropdown">
+                <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton"
+                        data-toggle="dropdown" aria-expanded="false">
+                    Категории
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% for item in categories%}
+                    <a class="dropdown-item" href="/news/{{item.id}}">{{item.name}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="dropdown">
+                <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown"
+                        data-display="static" aria-haspopup="true" aria-expanded="false">
+                    Добавить категорию
+                </button>
+                <div class="dropdown-menu" style="width: 300px">
+                    <form action="" method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        {{ form.add.label }}<br>
+                        <div class="row">
+                            <div class="col-sm">
+                                {{ form.add(class="form-control") }}
+                            </div>
+                            <div class="col-auto">
+                                {{ form.submit(type="submit", class="btn btn-primary") }}
+                            </div>
+                            {% for error in form.add.errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <br>
+                        {% if error %}
+                        <p class="alert alert-warning" role="alert">
+                            {{ error }}
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        {{ form.content.label }}<br>
-        {{ form.content(class="form-control form-inline") }} <br>
-        {% for error in form.content.errors %}
-        <p content="alert alert-danger" role="alert">
-            {{ error }}
-        </p>
-        {% endfor %}
+    {% for item in news%}
+    <div class="col-md6 border rounded">
+        <h2>{{item.title}}</h2>
+        <div>
+            {{item.content}}
+        </div>
+        <div>
+            Автор - {{item.user.name}}, Дата написания - {{item.created_date}}
+        </div>
+        {% if current_user.is_authenticated and current_user == item.user %}
+        <div>
+            <a href="/edit_news/{{ item.id }}" class="btn btn-warning">
+                Изменить
+            </a>
+            <a href="/news_delete/{{ item.id }}" class="btn btn-danger">
+                Удалить
+            </a>
+        </div>
+        {% endif %}
+
     </div>
-    <div class="form-group">
-        <p>{{ form.is_private() }} {{ form.is_private.label }}</p>
-    </div>
-    <div class="form-group">
-        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    </div>
-    {{message}}
-</form>
-{% endblock %}
+    {% endfor %}
+    {% endblock %}
+</div>

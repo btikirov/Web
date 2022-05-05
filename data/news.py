@@ -4,6 +4,16 @@ from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 
 
+association_table = sqlalchemy.Table(
+    'news_to_categories',
+    SqlAlchemyBase.metadata,
+    sqlalchemy.Column('news', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('news.id')),
+    sqlalchemy.Column('categories', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('categories.id'))
+)
+
+
 class News(SqlAlchemyBase):
     __tablename__ = 'news'
 
@@ -18,3 +28,8 @@ class News(SqlAlchemyBase):
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
+
+    categories = orm.relation("Category",
+                              secondary="news_to_categories",
+                              backref="news",
+                              lazy='subquery')

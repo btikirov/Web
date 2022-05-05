@@ -7,16 +7,21 @@
 {% endif %}
 <form action="" method="post">
     {{ form.hidden_tag() }}
-    <p>
-        {{ form.search.label }}<br>
-        {{ form.search(class="form-control") }}<br>
-    {{ form.submit(type="submit", class="btn btn-primary") }}
-    </p>
-    {% for error in form.search.errors %}
-    <div class="alert alert-danger" role="alert">
-        {{ error }}
+    {{ form.search.label }}<br>
+    <div class="row">
+        <div class="col">
+            {{ form.search(class="form-control") }}
+        </div>
+        <div class="col-md-auto">
+            {{ form.submit(type="submit", class="btn btn-primary") }}
+        </div>
+        {% for error in form.search.errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    <br>
     {% if error %}
     <p class="alert alert-warning" role="alert">
         {{ error }}
@@ -41,9 +46,9 @@
     </div>
     <br>
     {% if current_user.username != item.username %}
-        <a class="btn btn-secondary" href="/chats/{{item.username}}_{{current_user.username}}">Написать</a>
+    <a class="btn btn-secondary" href="/chats/{{item.username}}_{{current_user.username}}">Написать</a>
     {% else %}
-        <a class="btn btn-secondary" href="/chats/{{current_user.username}}">Зайти в свои заметки</a>
+    <a class="btn btn-secondary" href="/chats/{{current_user.username}}">Зайти в свои заметки</a>
     {% endif %}
 </div>
 {% endfor %}
