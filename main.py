@@ -1,4 +1,3 @@
-import datetime
 import os
 from flask_restful import Api
 from flask import Flask, render_template, redirect, request, abort
@@ -17,10 +16,8 @@ from forms.message import SendForm
 from forms.category import CategoryForm
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
-from flask_restful import reqparse
 
-
-UPLOAD_FOLDER = 'D:/Web/static/img'
+UPLOAD_FOLDER = os.getcwd() + '/static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg'}
 
 app = Flask(__name__)
@@ -108,8 +105,6 @@ def add_news():
         db_sess.add(news)
         db_sess.commit()
         return redirect('/')
-    else:
-        print(form.errors)
     return render_template('edit_news.html', title='Добавление новости',
                            form=form)
 
@@ -328,8 +323,6 @@ def edit_profile():
             return redirect('/users')
         else:
             abort(404)
-    else:
-        print(form.errors)
     return render_template('register.html',
                            title='Редактирование профиля',
                            form=form
@@ -643,4 +636,6 @@ if __name__ == '__main__':
 
     api.add_resource(news_api.NewsListResource, '/api/news')
     api.add_resource(news_api.NewsResource, '/api/news/<int:news_id>')
+    api.add_resource(users_api.UserResource, '/api/users/<int:user_id>')
+    api.add_resource(users_api.UsersListResource, '/api/users')
     app.run()
