@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div style="word-wrap: break-word;">
+                <h2>{{user.name}} {{user.surname}}</h2>
+                <p class="blockquote"><em>Имя пользователя:</em> <a href="/">{{user.username}}</a></p>
+
+            </div>
+            <div style="word-wrap: break-word;">
+                <strong>Описание:</strong> {{user.about}}
+            </div>
+            <div style="word-wrap: break-word;">
+                <strong>Почта:</strong> {{user.email}}
+            </div>
+            <div>
+                <strong>Дата регистрации:</strong> {{user.created_date}}
+            </div>
+            <br>
+            {% if current_user.username != user.username %}
+            <a class="btn btn-secondary" href="/chats/{{user.username}}_{{current_user.username}}">Написать</a>
+            {% else %}
+            <a class="btn btn-secondary" href="/chats/{{current_user.username}}">Зайти в свои заметки</a>
+            <a class="btn btn-warning" href="/edit_profile">Редактировтать свой профиль</a>
+            {% endif %}
+        </div>
+        <div class="col-auto">
+            <img src="/static/img/users/{{user.icon_href}}" width="200" height="200">
+        </div>
+    </div>
+</div>
+
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-sm border rounded">
+            <h2>Новости пользователя</h2>
+            {% for item in user.news%}
+            <div class="border rounded">
+                <h2 style="word-wrap: break-word;">{{item.title}}</h2>
+                <div style="word-wrap: break-word;">
+                    {{item.content}}
+                </div>
+                <div style="word-wrap: break-word;">
+                    Автор - {{item.user.name}}, Дата написания - {{item.created_date}}
+                </div>
+                {% if current_user.is_authenticated and current_user == item.user %}
+                <div>
+                    <a href="/edit_news/{{ item.id }}" class="btn btn-warning">
+                        Изменить
+                    </a>
+                    <a href="/news_delete/{{ item.id }}" class="btn btn-danger">
+                        Удалить
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-sm border rounded">
+            <h2>Задания пользователя</h2>
+            {% for item in user.tasks%}
+            <div class="border rounded">
+                <h2 style="word-wrap: break-word;">{{item.title}}</h2>
+                <div style="word-wrap: break-word;">
+                    {{item.content}}
+                </div>
+                <div style="word-wrap: break-word;">
+                    Автор - {{item.user.name}}, Дата написания - {{item.created_date}}
+                </div>
+                {% if current_user.is_authenticated and current_user == item.user %}
+                <div>
+                    <a href="/edit_news/{{ item.id }}" class="btn btn-warning">
+                        Изменить
+                    </a>
+                    <a href="/news_delete/{{ item.id }}" class="btn btn-danger">
+                        Удалить
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

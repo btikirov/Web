@@ -10,16 +10,27 @@
 </div>
 {% for item in messages%}
 
-<div class="col-md6 border rounded">
-    <div>
-        <p class="text-left"><strong>{{item.sender.username}}:</strong> {{item.content}}
-            {% if current_user.id == item.sender_id %}
-            <a href="delete_message/{{item.id}}" class="btn btn-danger" style="text-align: right">Удалить</a>
-            {% endif %}
-        </p>
-        <p class="text-right"><em>{{item.created_date}}</em></p>
+<div class="container border rounded">
+    <div class="row">
+        <div class="text-left col-sm"><img class="rounded" src="/static/img/users/{{item.sender.icon_href}}" width="50"
+                                           height="50"> <strong>{{item.sender.username}}</strong></div>
+        {% if current_user.id == item.sender_id %}
+        <div class="col-auto"><a href="delete_message/{{item.id}}" class="btn btn-danger"
+                                 style="text-align: right">Удалить</a></div>
+        {% endif %}
+    </div>
+    <br>
+    <div class="border rounded" style="word-wrap: break-word;">
+        {{item.content}}
+        <p class="text-right">{{item.created_date}}</p>
+    </div>
+    <div class="row">
+        <div class="text-left col">
+
+        </div>
     </div>
 </div>
+<br>
 {% endfor %}
 <form action="" method="post" class="row" novalidate>
     {{ form.hidden_tag() }}

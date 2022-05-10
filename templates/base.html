@@ -15,18 +15,24 @@
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand border" href="/">Our сайт</a>
         <div>
+            <a class="navbar-brand" href="/tasks">Задания</a>
             <a class="navbar-brand" href="/news">Новости</a>
-            <a class="navbar-brand" href="/chats">Сообщения</a>
+            <a class="navbar-brand" href="/chats">Чаты</a>
             <a class="navbar-brand" href="/users">Пользователи</a>
         </div>
-        {% if current_user.is_authenticated %}
-        <a class="navbar-brand" href="/logout">{{ current_user.name }}</a>
-        {% else %}
-        <p>
-            <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
-            <a class="btn btn-success" href="/login">Войти</a>
-        </p>
-        {% endif %}
+        <div>
+            {% if current_user.is_authenticated %}
+            <p>
+                <a class="btn btn-primary" href="/users/{{current_user.id}}">{{ current_user.username }}</a>
+                <a class="btn btn-danger" href="/logout">Выйти</a>
+            </p>
+            {% else %}
+            <p>
+                <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
+                <a class="btn btn-success" href="/login">Войти</a>
+            </p>
+            {% endif %}
+        </div>
     </nav>
 </header>
 

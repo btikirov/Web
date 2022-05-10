@@ -3,20 +3,30 @@
 {% block content %}
 <h1>Мои чаты</h1>
 {% if current_user.is_authenticated %}
-    <a href="/add_chat" class="btn btn-secondary">Создать новый чат</a><br><br>
+<a href="/chats/add_chat" class="btn btn-secondary">Создать новый чат</a><br><br>
 {% endif %}
 {% for item in chats%}
-<div class="col-md6 border rounded">
-    <h2>{{item.name}}</h2>
-    <div>
-        Создатель - {{item.admin.username}}, Дата написания - {{item.created_date}}
-    </div>
-    <div>
-        {% if item.unique_chat_href == None %}
+<div class="row border rounded">
+    <div class="col">
+        <h2 style="word-wrap: break-word;">{{item.name}}</h2>
+        <div style="word-wrap: break-word;">
+            Дата создания - {{item.created_date}}
+        </div>
+        <div style="word-wrap: break-word;">
+            Описание:
+            {{item.content}}
+        </div>
+        <div>
+            {% if item.unique_chat_href == None %}
             <a href="/chats/{{item.id}}/" class="btn btn-primary">Написать</a>
-        {% else %}
+            {% else %}
             <a href="/chats/{{item.unique_chat_href}}/" class="btn btn-primary">Написать</a>
-        {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-auto">
+        <br>
+        <img src="/static/img/chats/{{item.icon_href}}" width="200" height="200"><br>
     </div>
 
 </div>

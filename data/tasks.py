@@ -1,22 +1,22 @@
 import datetime
 import sqlalchemy
 from sqlalchemy import orm
-from .db_session import SqlAlchemyBase
 from sqlalchemy_serializer import SerializerMixin
+from .db_session import SqlAlchemyBase
 
 
 association_table = sqlalchemy.Table(
-    'news_to_categories',
+    'tasks_to_categories',
     SqlAlchemyBase.metadata,
-    sqlalchemy.Column('news', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('news.id')),
+    sqlalchemy.Column('tasks', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('tasks.id')),
     sqlalchemy.Column('categories', sqlalchemy.Integer,
                       sqlalchemy.ForeignKey('categories.id'))
 )
 
 
-class News(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'news'
+class Task(SqlAlchemyBase, SerializerMixin):
+    __tablename__ = 'tasks'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
@@ -31,6 +31,6 @@ class News(SqlAlchemyBase, SerializerMixin):
     user = orm.relation('User')
 
     categories = orm.relation("Category",
-                              secondary="news_to_categories",
-                              backref="news",
+                              secondary="tasks_to_categories",
+                              backref="tasks",
                               lazy='subquery')
